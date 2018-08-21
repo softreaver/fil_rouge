@@ -17,11 +17,7 @@ function Card (cardName, cardCost, cardLife, cardAttack, cardPowerList = []) {
     this.getPowerList = function() { return powerList; };
     this.getSlot = function() { return slot };
 
-    this.setName = function(newName) {
-        name = newName;
-    };
-
-    this.getDamage = function(damages) { 
+    this.decreaseLife = function(damages) { 
         currenLife -= damages; 
         if(currentLife <= 0) {
             currentLife = 0;
@@ -31,7 +27,7 @@ function Card (cardName, cardCost, cardLife, cardAttack, cardPowerList = []) {
         }
     };
 
-    this.heal = function(quantity) {
+    this.increaseLife = function(quantity) {
         currentLife += quantity;
         if(currentLife > maxLife)
             currentLife = maxLife;
@@ -49,7 +45,7 @@ function Card (cardName, cardCost, cardLife, cardAttack, cardPowerList = []) {
             attack = 0;
     };
 
-    this.increaseDamage = function(value) {
+    this.increaseAttack = function(value) {
         attack += value;
     }
     
