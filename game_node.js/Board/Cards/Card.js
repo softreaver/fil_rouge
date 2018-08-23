@@ -33,11 +33,15 @@ function Card (cardName, cardCost, cardLife, cardAttack, cardPowerList = []) {
             currentLife = maxLife;
     }
 
-    this.setMaxLife = function(newMaxLife) {
-        maxLife = newMaxLife;
+    this.increaseMaxLife = function(value) {
+        maxLife += value;
+    };
+
+    this.decreaseMaxLife = function(value) {
+        maxLife -= value;
         if(maxLife < 1)
             maxLife = 1;
-    };
+    }
 
     this.decreaseAttack = function(value) {
         attack -= value;
