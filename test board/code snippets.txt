@@ -1,0 +1,69 @@
+let card = document.getElementById('card-1');
+let attackSlot1 = document.getElementById('attack-slot-1.1');
+let defenseSlot1 = document.getElementById('defense-slot-1.1');
+
+function initSlotDimmention() {
+    let playgoundSlotsListElt = document.querySelectorAll('[id^=attack-slot-],[id^=defense-slot-]');
+
+    if(playgoundSlotsListElt.length > 0) {
+        let slotWidth = `${playgoundSlotsListElt[0].offsetWidth}px`;
+        let slotHeight = `${(playgoundSlotsListElt[0].offsetWidth + (1/3) * playgoundSlotsListElt[0].offsetWidth)}px`;
+
+        for(let slotElt of playgoundSlotsListElt) {
+            slotElt.style.height = slotHeight;
+        }
+
+        let deckSlotsListElt = document.querySelectorAll('#decks-panel .slot');
+
+        for(let deckSlotElt of deckSlotsListElt) {
+            deckSlotElt.style.width = slotWidth;
+            deckSlotElt.style.height = slotHeight;
+        }
+
+        let asideSlotsListElt = document.querySelectorAll('#left-panel div:not(#decks-panel) .slot, #right-panel .slot');
+
+        for(let asideSlotElt of asideSlotsListElt) {
+            asideSlotElt.style.width = slotHeight;
+            asideSlotElt.style.height = slotWidth;
+        }
+    }
+    
+}
+
+function positionToSlot(card, slot) {
+    card.style.left = `${slot.offsetLeft}px`;
+    card.style.top = `${slot.offsetTop}px`;
+}
+
+function initCards() {
+    let cardsListElt = document.getElementsByClassName('card');
+
+    for(let cardElt of cardsListElt) {
+        cardElt.style.height = `${(cardElt.offsetWidth + (1/3) * cardElt.offsetWidth)}px`;
+
+        cardElt.addEventListener('mouseover', event => {
+            let xGrow = cardElt.offsetWidth * 4;
+            let yGrow = cardElt.offsetHeight * 4;
+
+            cardElt.style.left = `${cardElt.offsetLeft - (xGrow / 4)}px`;
+            cardElt.style.top = `${cardElt.offsetTop - (yGrow / 4)}px`;
+
+            cardElt.style.width = `${xGrow}px`;
+            cardElt.style.height = `${yGrow}px`;
+
+            cardElt.style.zIndex = "2";
+        });
+
+        cardElt.addEventListener('mouseout', event => {
+            cardElt.style.width = '16%';
+            cardElt.style.height = '50%';
+
+            positionToSlot(event.target, defenseSlot1);
+
+            cardElt.style.zIndex = "1";
+        });
+    }
+}
+
+initSlotDimmention();
+initCards();

@@ -1,21 +1,41 @@
 * {
   -webkit-box-sizing: border-box;
   box-sizing: border-box; }
+  * [class*=col] {
+    position: static; }
 
 #board {
   background-color: antiquewhite;
   width: 85vw;
-  height: 90vh; }
+  height: 90vh;
+  position: relative; }
   #board #left-panel {
     background-color: grey;
     height: 100%; }
+    #board #left-panel .slot {
+      width: 16%;
+      height: 100%;
+      border: 2px solid black; }
+      #board #left-panel .slot .card {
+        -webkit-transition: all 0.5s;
+        -o-transition: all 0.5s;
+        transition: all 0.5s;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1; }
+    #board #left-panel > .row [id^=sumoning-power-pool] {
+      height: calc(0.2 * 90vh);
+      background-color: brown; }
+    #board #left-panel > .row #prescience-panel,
+    #board #left-panel > .row #decks-panel {
+      height: calc(0.6 * 90vh);
+      background-color: chocolate; }
   #board #center-panel {
     background-color: #a0a0a0;
     height: 100%; }
     #board #center-panel > .row {
       height: 100%; }
-      #board #center-panel > .row .slot {
-        border: 2px solid black; }
       #board #center-panel > .row #player-panel-1,
       #board #center-panel > .row #player-panel-2 {
         height: 20%; }
@@ -40,7 +60,7 @@
               #board #center-panel > .row #playground-2 > .row [id*=slots-panel] > .row .slot {
                 width: 16%;
                 height: 100%;
-                position: relative; }
+                border: 2px solid black; }
                 #board #center-panel > .row #playground-1 > .row [id*=slots-panel] > .row .slot .card,
                 #board #center-panel > .row #playground-2 > .row [id*=slots-panel] > .row .slot .card {
                   -webkit-transition: all 0.5s;
@@ -49,8 +69,26 @@
                   position: absolute;
                   left: 0;
                   top: 0;
-                  width: 100%;
-                  height: 100%; }
+                  z-index: 1; }
   #board #right-panel {
     background-color: grey;
     height: 100%; }
+    #board #right-panel > .row .slot {
+      width: 16%;
+      height: 100%;
+      border: 2px solid black; }
+      #board #right-panel > .row .slot .card {
+        -webkit-transition: all 0.5s;
+        -o-transition: all 0.5s;
+        transition: all 0.5s;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1; }
+    #board #right-panel > .row [id^=major-invocation-pool] {
+      height: calc(0.2 * 90vh);
+      background-color: brown; }
+    #board #right-panel > .row #ceremonies-panel,
+    #board #right-panel > .row #major-invocations-panel {
+      height: calc(0.6 * 90vh);
+      background-color: chocolate; }
