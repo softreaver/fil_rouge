@@ -13,18 +13,18 @@ function initSlotDimmention() {
             slotElt.style.height = slotHeight;
         }
 
+        let asideSlotsListElt = document.querySelectorAll('#left-panel .slot, #right-panel .slot');
+
+        for(let asideSlotElt of asideSlotsListElt) {
+            asideSlotElt.style.width = slotHeight;
+            asideSlotElt.style.height = slotWidth;
+        }
+
         let deckSlotsListElt = document.querySelectorAll('#decks-panel .slot');
 
         for(let deckSlotElt of deckSlotsListElt) {
             deckSlotElt.style.width = slotWidth;
             deckSlotElt.style.height = slotHeight;
-        }
-
-        let asideSlotsListElt = document.querySelectorAll('#left-panel div:not(#decks-panel) .slot, #right-panel .slot');
-
-        for(let asideSlotElt of asideSlotsListElt) {
-            asideSlotElt.style.width = slotHeight;
-            asideSlotElt.style.height = slotWidth;
         }
     }
     

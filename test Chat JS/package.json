@@ -1,0 +1,15 @@
+{
+  "name": "chat-js",
+  "version": "0.0.1",
+  "description": "Un petit chat en ligne fait grace au webSocket et js",
+  "main": "main.js",
+  "scripts": {
+    "test": "node ."
+  },
+  "author": "MILAZZO Christopher",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
+  }
+}

@@ -1,0 +1,17 @@
+* {
+    box-sizing: border-box;
+}
+
+#messages-list {
+    box-shadow: inset 0 0 5px grey;
+}
+
+.pseudo {
+    font-weight: bold;
+    color: grey;
+}
+
+.notification {
+    font-style: italic;
+    color: blue;
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #messages-list {
+            box-shadow: inset 0 0 5px grey;
+            height: 80vh;
+            overflow-y: scroll;
+            scroll-behavior: smooth;
+            padding: 2em;
+        }
+
+        .pseudo {
+            font-weight: bold;
+            color: grey;
+        }
+
+        .notification {
+            font-style: italic;
+            color: blue;
+        }
+
+        #send-message-form {
+            display: flex;
+        }
+
+        #message-input {
+            flex-flow: 1;
+            width: 80VW;
+        }
+
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Super Chat</h1>
+    <div id="messages-list">
+        <!-- HERE - List of all messages -->
+    </div>
+    <form id="send-message-form" action="http://localhost:8080" method="POST">
+        <input type="text" name="message" id="message-input">
+        <button type="submit">Envoyer</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // var player = require('play-sound')(opts = {});
+
+        var socket = io.connect('http://localhost:8080');
+        var pseudo = prompt('Bonjour', 'entrez votre pseudo : ');
+
+        socket.emit('pseudo', pseudo);
+
+        socket.on('connection', pseudo => {
+            writeMessage({
+                text: "Vient de se connecter.",
+                pseudo: pseudo
+            }, true);
+        });
+
+        socket.on('message', message => {
+            if (typeof message !== 'undefined')
+                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined')
+                    writeMessage(message);
+        });
+
+        function writeMessage(message, isNotification = false) {
+            let messageElt = document.createElement('p');
+            messageElt.innerHTML = `
+                <span class="pseudo">${ message.pseudo}</span> ${(isNotification) ? '' : ': '}${message.text}
+            `;
+            if (isNotification)
+                messageElt.className = "notification";
+            /*else
+                player.play('foo.mp3', function(err){
+                    if (err) throw err
+                });
+                */
+
+            let messagesListElt = document.getElementById('messages-list');
+            let scrollToBottom = false;
+
+            if(messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight > -10 &&
+            messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight < 10)
+                scrollToBottom = true;
+
+            messagesListElt.appendChild(messageElt);
+            
+            if(scrollToBottom) 
+                messagesListElt.scrollTo(0, messagesListElt.scrollHeight - messagesListElt.clientHeight);
+
+        }
+
+        document.getElementById('send-message-form').addEventListener('submit', event => {
+            event.preventDefault();
+            let inputElt = document.getElementById('message-input');
+
+            if (inputElt.value.trim().length > 0) {
+                socket.emit('message', inputElt.value);
+                writeMessage({
+                    text: inputElt.value,
+                    pseudo: pseudo
+                });
+                inputElt.value = '';
+            }
+                
+        });
+    </script>
+</body>
+
+</html>
