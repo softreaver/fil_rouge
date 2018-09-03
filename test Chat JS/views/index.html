@@ -36,6 +36,7 @@
         #message-input {
             flex-flow: 1;
             width: 80VW;
+            height: 3em;
         }
 
     </style>
@@ -48,17 +49,16 @@
         <!-- HERE - List of all messages -->
     </div>
     <form id="send-message-form" action="http://localhost:8080" method="POST">
-        <input type="text" name="message" id="message-input">
+        <input type="text" name="message" id="message-input" autocomplete="off">
         <button type="submit">Envoyer</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        var audio = new Audio('../sounds/newMessage.mpeg');
-        console.log(audio.volume);
+        var audio = new Audio('../sounds/newMessage.mp3');
 
-        var socket = io.connect('http://localhost:8080');
-        var pseudo = prompt('Bonjour', 'entrez votre pseudo : ');
+        var socket = io.connect(':3000');
+        var pseudo = prompt('entrez votre pseudo : ', '');
 
         socket.emit('pseudo', pseudo);
 
@@ -75,6 +75,13 @@
                     writeMessage(message);
         });
 
+        socket.on('disconnection', pseudo => {
+            writeMessage({
+                text: "S'est déconnecté.",
+                pseudo: pseudo
+            }, true);
+        });
+
         function writeMessage(message, isNotification = false) {
             let messageElt = document.createElement('p');
             messageElt.innerHTML = `
@@ -83,7 +90,8 @@
             if (isNotification)
                 messageElt.className = "notification";
             else
-                audio.play();
+                if(message.pseudo !== pseudo)
+                    audio.play();
 
             let messagesListElt = document.getElementById('messages-list');
             let scrollToBottom = false;
@@ -104,11 +112,15 @@
             let inputElt = document.getElementById('message-input');
 
             if (inputElt.value.trim().length > 0) {
-                socket.emit('message', inputElt.value);
-                writeMessage({
-                    text: inputElt.value,
-                    pseudo: pseudo
-                });
+                if(inputElt.value.indexOf('/') === 0) {
+                    socket.emit('checkSocket');
+                } else {
+                    socket.emit('message', inputElt.value);
+                    writeMessage({
+                        text: inputElt.value,
+                        pseudo: pseudo
+                    });
+                }
                 inputElt.value = '';
             }
                 
