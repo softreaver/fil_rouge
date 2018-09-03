@@ -1,10 +1,13 @@
 "use-strict";
 
+//Loading modules
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var fs = require('fs');
+var ent = require('ent'); // To avoid XSS attack by filtering HTML tags.
 
+//Starting the server
 server.listen(8080);
 
 app.get('/', (req, resp) => {
@@ -30,6 +33,7 @@ io.sockets.on('connection', socket => {
     });
 
     socket.on('message', message => {
+        message = ent.encode(message);
         console.log('Broadcasting a message from ' + socket.pseudo + '. MESSAGE => ' + message);
         socket.broadcast.emit('message', {
             text: message,

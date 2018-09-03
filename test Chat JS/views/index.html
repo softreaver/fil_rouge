@@ -51,9 +51,11 @@
         <input type="text" name="message" id="message-input">
         <button type="submit">Envoyer</button>
     </form>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // var player = require('play-sound')(opts = {});
+        var audio = new Audio('../sounds/newMessage.mpeg');
+        console.log(audio.volume);
 
         var socket = io.connect('http://localhost:8080');
         var pseudo = prompt('Bonjour', 'entrez votre pseudo : ');
@@ -80,11 +82,8 @@
             `;
             if (isNotification)
                 messageElt.className = "notification";
-            /*else
-                player.play('foo.mp3', function(err){
-                    if (err) throw err
-                });
-                */
+            else
+                audio.play();
 
             let messagesListElt = document.getElementById('messages-list');
             let scrollToBottom = false;
