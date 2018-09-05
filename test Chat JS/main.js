@@ -10,7 +10,7 @@ var channelsList = [];
 
 //Starting the server
 server.listen(3000);
-
+/*
 app.get('/', (req, resp) => {
     let ip = req.connection.remoteAddress;
     console.log(`[${ ip }] asked for index.html.`);
@@ -28,7 +28,7 @@ app.get('/', (req, resp) => {
 .use((req, resp) => {
     resp.redirect('http://192.168.10.210:3000/');
 });
-
+*/
 // WebSocket
 io.sockets.on('connection', socket => {
     console.log('An user just connect, waiting for pseudo ...');

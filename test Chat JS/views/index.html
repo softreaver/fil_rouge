@@ -48,7 +48,7 @@
     <div id="messages-list">
         <!-- HERE - List of all messages -->
     </div>
-    <form id="send-message-form" action="http://localhost:8080" method="POST">
+    <form id="send-message-form" method="POST">
         <input type="text" name="message" id="message-input" autocomplete="off">
         <button type="submit">Envoyer</button>
     </form>
@@ -58,6 +58,9 @@
         var audio = new Audio('../sounds/newMessage.mp3');
 
         var socket = io.connect(':3000');
+        socket.on('connect_error', error => {
+            console.log(error);
+        });
         var pseudo = prompt('entrez votre pseudo : ', '');
 
         socket.emit('pseudo', pseudo);
