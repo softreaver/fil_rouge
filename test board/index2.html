@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="bootstrap.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12" id="section1">
+                <div class="row">
+                    <div class="col-6" id="elt1" style="background-color: brown; height:300px">
+                        <div style="background-color: aqua; height: 100%; width:100%" id="target"></div>
+                    </div>
+                    <div class="col-6" id="elt2"style="background-color: brown; height:300px"></div>
+                </div>
+            </div>
+            <div class="col-12" id="section2">
+                <div class="row">
+                    <div class="col-6" id="elem1" style="background-color: brown; height:300px"></div>
+                    <div class="col-6" id="elem2" style="background-color: brown; height:300px"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let elt1 = document.getElementById('elt1');
+        let elt2 = document.getElementById('elt2');
+        console.log(elt1.offsetTop);
+        console.log(elt1.offsetLeft);
+
+        let elem1 = document.getElementById('elem1');
+        console.log(elem1.offsetTop);
+        console.log(elem1.offsetLeft);
+    </script>
+</body>
+</html>

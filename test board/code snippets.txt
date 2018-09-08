@@ -1,6 +1,8 @@
 let card = document.getElementById('card-1');
+let card2 = document.getElementById('card-2');
 let attackSlot1 = document.getElementById('attack-slot-1.1');
 let defenseSlot1 = document.getElementById('defense-slot-1.1');
+let prescienceSlot3 = document.getElementById('prescience-slot-3');
 
 function initSlotDimmention() {
     let playgoundSlotsListElt = document.querySelectorAll('[id^=attack-slot-],[id^=defense-slot-]');
@@ -33,32 +35,23 @@ function initSlotDimmention() {
 function positionToSlot(card, slot) {
     card.style.left = `${slot.offsetLeft}px`;
     card.style.top = `${slot.offsetTop}px`;
+    card.style.transform = `rotate(${slot.getAttribute('degree')}deg)`;
 }
 
 function initCards() {
     let cardsListElt = document.getElementsByClassName('card');
 
     for(let cardElt of cardsListElt) {
-        cardElt.style.height = `${(cardElt.offsetWidth + (1/3) * cardElt.offsetWidth)}px`;
+        cardElt.style.height = `${(cardElt.offsetWidth * (1/3) + cardElt.offsetWidth)}px`;
 
         cardElt.addEventListener('mouseover', event => {
-            let xGrow = cardElt.offsetWidth * 4;
-            let yGrow = cardElt.offsetHeight * 4;
-
-            cardElt.style.left = `${cardElt.offsetLeft - (xGrow / 4)}px`;
-            cardElt.style.top = `${cardElt.offsetTop - (yGrow / 4)}px`;
-
-            cardElt.style.width = `${xGrow}px`;
-            cardElt.style.height = `${yGrow}px`;
+            cardElt.style.transform = "scale(4)";
 
             cardElt.style.zIndex = "2";
         });
 
         cardElt.addEventListener('mouseout', event => {
-            cardElt.style.width = '16%';
-            cardElt.style.height = '50%';
-
-            positionToSlot(event.target, defenseSlot1);
+            cardElt.style.transform = "scale(1)";
 
             cardElt.style.zIndex = "1";
         });
