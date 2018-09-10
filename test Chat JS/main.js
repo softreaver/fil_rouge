@@ -10,13 +10,19 @@ var channelsList = [];
 
 //Starting the server
 server.listen(3000);
-/*
+
 app.get('/', (req, resp) => {
     let ip = req.connection.remoteAddress;
     console.log(`[${ ip }] asked for index.html.`);
     fs.readFile('views/index.html', 'utf-8', function(error, content) {
-        resp.writeHead(200, {"Content-Type": "text/html"});
-        resp.end(content);
+        if(error !== null) {
+            console.log(error.message);
+            resp.writeHead(500, {"Content-Type": "text/plain"});
+            resp.end(error.message);
+        } else {
+            resp.writeHead(200, {"Content-Type": "text/html"});
+            resp.end(content);
+        }
     });
 })
 
@@ -28,7 +34,7 @@ app.get('/', (req, resp) => {
 .use((req, resp) => {
     resp.redirect('http://192.168.10.210:3000/');
 });
-*/
+
 // WebSocket
 io.sockets.on('connection', socket => {
     console.log('An user just connect, waiting for pseudo ...');
@@ -77,3 +83,4 @@ nsp.on('connection', socket => {
 });
 
 console.log('Serveur en ligne ...');
+
