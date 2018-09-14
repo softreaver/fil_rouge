@@ -1,0 +1,27 @@
+{
+  "name": "grimoir_invocation",
+  "version": "1.0.0",
+  "description": "Un jeu de carte en ligne pour deux joueurs",
+  "main": "GameControlerServer.js",
+  "scripts": {
+    "test": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/softreaver/fil_rouge.git"
+  },
+  "author": "MILAZZO Christopher",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/softreaver/fil_rouge/issues"
+  },
+  "homepage": "https://github.com/softreaver/fil_rouge#readme",
+  "dependencies": {
+    "ent": "^2.2.0",
+    "express": "^4.16.3",
+    "fs": "0.0.1-security",
+    "pg": "^7.4.3",
+    "session.socket.io": "^0.2.1",
+    "socket.io": "^2.1.1"
+  }
+}
