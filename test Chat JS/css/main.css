@@ -2,8 +2,12 @@
     box-sizing: border-box;
 }
 
-#messages-list {
+.messages-list {
     box-shadow: inset 0 0 5px grey;
+    height: 80vh;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    padding: 2em;
 }
 
 .pseudo {
@@ -14,4 +18,14 @@
 .notification {
     font-style: italic;
     color: blue;
+}
+
+#send-message-form {
+    display: flex;
+}
+
+#message-input {
+    flex-flow: 1;
+    width: 80VW;
+    height: 3em;
 }
