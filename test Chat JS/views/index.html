@@ -14,32 +14,35 @@
     <h1>Super Chat</h1>
     <div class="row">
         <div class="col-3">
-          <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <a class="nav-link active" id="v-pills-default-tab" data-toggle="pill" href="#v-pills-default" role="tab" aria-controls="v-pills-default" aria-selected="true">default</a>
-            <!-- <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Channel name</a> -->
-          </div>
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active" id="v-pills-default-tab" data-toggle="pill" href="#v-pills-default"
+                    role="tab" aria-controls="v-pills-default" aria-selected="true">default</a>
+                <!-- <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Channel name</a> -->
+            </div>
         </div>
         <div class="col-9">
-          <div class="tab-content" id="v-pills-tabContent">
-            <div class="tab-pane fade show active" id="v-pills-default" role="tabpanel" aria-labelledby="v-pills-default">
-                <div class="messages-list" id="messages-list-default">
-                    <!-- HERE - List of all messages -->
+            <div class="tab-content" id="v-pills-tabContent">
+                <div class="tab-pane fade show active" id="v-pills-default" role="tabpanel"
+                    aria-labelledby="v-pills-default">
+                    <div class="messages-list" id="messages-list-default">
+                        <!-- HERE - List of all messages -->
+                    </div>
                 </div>
-            </div>
-            <!--
+                <!--
             <div class="tab-pane fade" id="v-pills-channel-name" role="tabpanel" aria-labelledby="v-pills-channel-name">
                 <div class="messages-list" id="messages-list-channel-name">
                     HERE - List of all messages
                 </div>
             </div>
             -->
-          </div>
+            </div>
         </div>
-      </div>
+    </div>
 
     <form id="send-message-form" method="POST">
         <input type="text" name="message" id="message-input" autocomplete="off">
         <button type="submit">Envoyer</button>
+        <button id="disconnect-button" type="button">Se déconnecter</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -48,14 +51,25 @@
 
         var socket = io.connect(':3000');
         var myPseudo = null;
-        var myChannelList = ['default'];
+        var myChannelsList = ['default'];
+        var unreadMap = {};
+
         socket.on('connect_error', error => {
             console.log(error);
         });
 
         socket.on('welcomeBack', user => {
             myPseudo = user.pseudo;
-            myChannelList = user.channelList;
+            myChannelList = user.channelsList;
+
+            // Refresh channels list
+            for (let channelName of user.channelsList) {
+                let channel = channelName.replace(/ /g, '-');
+                // if the room link is not already in the list
+                if (!document.getElementById('v-pills-' + channel + '-tab')) {
+                    addNewRoomTab(channelName);
+                }
+            }
         });
 
         socket.on('whoAreYou', () => {
@@ -83,7 +97,7 @@
 
         socket.on('message', message => {
             if (typeof message !== 'undefined')
-                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined' && typeof message.channel !== 'undefined')
+                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined' && typeof message.channel !== 'undefined' && myPseudo != message.pseudo)
                     writeMessage(message);
         });
 
@@ -94,44 +108,28 @@
             }, true);
         });
 
-        function writeMessage(message, isNotification = false) {
-            let messageElt = document.createElement('p');
-            messageElt.innerHTML = `
-                <span class="pseudo">${ message.pseudo}</span> ${(isNotification) ? '' : ': '}${message.text}
-            `;
-            if (isNotification)
-                messageElt.className = "notification";
-            else
-                if(message.pseudo !== myPseudo)
-                    audio.play();
-
-            let channel = message.channel.replace(/ /g, '-');
-            let messagesListElt = document.getElementById('messages-list-' + channel);
-            let scrollToBottom = false;
-
-            if(messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight > -10 &&
-            messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight < 10)
-                scrollToBottom = true;
-
-            messagesListElt.appendChild(messageElt);
-            
-            if(scrollToBottom) 
-                messagesListElt.scrollTo(0, messagesListElt.scrollHeight - messagesListElt.clientHeight);
-
-        }
+        document.getElementById('disconnect-button').addEventListener('click', event => {
+            socket.emit('log off', err => {
+                if (!err) {
+                    socket.disconnect();
+                }
+            });
+        });
 
         document.getElementById('send-message-form').addEventListener('submit', event => {
             event.preventDefault();
             let inputElt = document.getElementById('message-input');
 
             if (inputElt.value.trim().length > 0) {
-                if(inputElt.value.indexOf('/') === 0 && inputElt.value.length > 1) {
-                    socket.emit('joinChannel', inputElt.value.substr(1));
+                if (inputElt.value.indexOf('/') === 0 && inputElt.value.length > 1) {
+                    socket.emit('createChannel', inputElt.value.substr(1), channelName => {
+                        addNewRoomTab(channelName);
+                    });
                 } else if (inputElt.value.indexOf('/') === 0) {
                     socket.emit('checkSocket');
                 } else {
                     // retrive active channel name
-                    let channel = document.querySelector(`.nav-link.active`).value;
+                    let channel = document.querySelector(`.nav-link.active`).firstChild.data.trim();
                     socket.emit('message', inputElt.value, channel);
                     writeMessage({
                         text: inputElt.value,
@@ -141,8 +139,136 @@
                 }
                 inputElt.value = '';
             }
-                
         });
+
+        let navLink = document.getElementById('v-pills-default-tab');
+        tabClickEventHandler(navLink);
+
+        function writeMessage(message, isNotification = false) {
+            let messageElt = document.createElement('p');
+            messageElt.innerHTML = `
+                <span class="pseudo">${ message.pseudo}</span> ${(isNotification) ? '' : ': '}${message.text}
+            `;
+            if (isNotification)
+                messageElt.className = "notification";
+            else
+                if (message.pseudo !== myPseudo)
+                    audio.play();
+
+            let channel = (message.channel && message.channel.replace(/ /g, '-')) || 'default';
+            let activeChannel = document.querySelector(`.nav-link.active`).firstChild.data;
+            let messagesListElt = document.getElementById('messages-list-' + channel);
+            let scrollToBottom = false;
+
+            if (messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight > -10 &&
+                messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight < 10)
+                scrollToBottom = true;
+
+            messagesListElt.appendChild(messageElt);
+
+            // Check if channel is the active channel. Is not then increment unread message
+            if (activeChannel != message.channel) {
+                if (!unreadMap[channel]) {
+                    unreadMap[channel] = 0;
+                }
+                // Create/Retrieve unread tag on channel button
+                let tagElt;
+                tagElt = document.querySelector(`#v-pills-${ channel }-tab>.unread`);
+                if (!tagElt) {
+                    tagElt = document.createElement('span');
+                    tagElt.className = 'unread';
+                    document.getElementById('v-pills-' + channel + '-tab').appendChild(tagElt);
+                }
+                unreadMap[channel]++;
+                tagElt.textContent = unreadMap[channel];
+            }
+
+            if (scrollToBottom) {
+                // messagesListElt.scrollTo(0, messagesListElt.scrollHeight - messagesListElt.clientHeight);
+                messagesListElt.scrollTop = messagesListElt.scrollHeight;
+            }
+        }
+
+        function addNewRoomTab(channelName) {
+            if (channelName) {
+                let tabContainer = document.getElementById('v-pills-tab');
+                let channel = channelName.replace(/ /g, '-');
+                tabContainer.insertAdjacentHTML('beforeend', `
+                    <a class="nav-link" id="v-pills-${ channel }-tab" data-toggle="pill" href="#v-pills-${ channel }" role="tab" aria-controls="v-pills-${ channel }" aria-selected="true">${ channelName }</a>
+                `);
+
+                let tabContentContainer = document.getElementById('v-pills-tabContent');
+                tabContentContainer.insertAdjacentHTML('beforeend', `
+                    <div class="tab-pane fade" id="v-pills-${ channel }" role="tabpanel" aria-labelledby="v-pills-${ channel }">
+                        <div class="messages-list" id="messages-list-${ channel }"></div>
+                    </div>
+                `);
+
+                tabClickEventHandler(document.getElementById(`v-pills-${ channel }-tab`));
+            }
+        }
+
+        function tabClickEventHandler (element) {
+            element.addEventListener('click', event => {
+                // find active nav link and remove class 'active'
+                let activeLink = document.querySelector('.nav-link.active');
+                if (activeLink) {
+                    activeLink.classList.remove('active');
+                }
+
+                event.currentTarget.classList.add('active');
+
+                let activeTabContent = document.querySelector('.tab-pane.active');
+                if (activeTabContent) {
+                    activeTabContent.classList.remove('show', 'active');
+                }
+                
+                document.getElementById(event.currentTarget.getAttribute('href').substr(1)).classList.add('show', 'active');
+
+                // Retrieve channel name
+                let channel = event.currentTarget.getAttribute('href').substr(9);
+
+                // Remove new messages line before
+                let newMessagesLineElt = document.getElementById('new-messages-line');
+                if (newMessagesLineElt) {
+                    newMessagesLineElt.parentElement.removeChild(newMessagesLineElt);
+                } else {
+                    newMessagesLineElt = document.createElement('div');
+                    newMessagesLineElt.id= 'new-messages-line';
+                }
+                // Add new 'new messages' line
+                let messagesListElt = document.getElementById(`messages-list-${ channel }`);
+
+                if (messagesListElt) {
+                    // get how many unread messages there are
+                    let unreadCount = unreadMap[channel];
+                    if (Number.isInteger(unreadCount) && unreadCount > 0) {
+                        unreadMap[channel] = 0;
+                        let messagesElt = messagesListElt.getElementsByTagName('p');
+                        let indexOfLastOldMessage = messagesElt.length - unreadCount;
+
+                        if (indexOfLastOldMessage > 0) {
+                            // position line break just after the last old message
+                            let lastOldMessageElt = messagesListElt.querySelector(`:nth-child(${ indexOfLastOldMessage })`);
+
+                            if (lastOldMessageElt) {
+                                lastOldMessageElt.insertAdjacentElement('afterend', newMessagesLineElt);
+                            }
+                        } else {
+                            messagesListElt.insertAdjacentElement('afterbegin', newMessagesLineElt);
+                        }
+
+                        setTimeout(() => newMessagesLineElt.scrollIntoView(true), 100);
+                    }
+                }
+
+                // Remove unread tag from tab
+                let tagToRemove = event.currentTarget.querySelector('.unread');
+                if (tagToRemove) {
+                    event.currentTarget.removeChild(tagToRemove);
+                }
+            });
+        }
     </script>
 </body>
 

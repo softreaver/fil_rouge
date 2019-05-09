@@ -65,7 +65,9 @@ io.sockets.on('connection', socket => {
         if (sessionIsUp) {
             // Welcome back
             console.log(`Welcome back ${ socket.handshake.session.user.pseudo }`);
+            console.log(socket.handshake.session.user);
             socket.emit('welcomeBack', socket.handshake.session.user);
+            socket.join(socket.handshake.session.user.channelsList);
         } else {
             // Ask user for his pseudo
             console.log("Request user for pseudo");
@@ -83,14 +85,23 @@ io.sockets.on('connection', socket => {
     socket.on('message', (message, channel) => {
         if(typeof socket.handshake.session.user.pseudo !== 'undefined') {
             message = ent.encode(message);
-            console.log('Broadcasting a message from ' + socket.handshake.session.user.pseudo + '. MESSAGE => ' + message);
+            console.log('Broadcasting a message on channel => ' + channel + ' from ' + socket.handshake.session.user.pseudo + '. MESSAGE => ' + message);
 
-            // Send a message to the channel
-            io.to(channel).emit('message', {
-                text: message,
-                pseudo: socket.handshake.session.user.pseudo,
-                channel: channel
-            });
+            if (channel == 'default')  {
+                // Broadcast message to every one
+                socket.broadcast.emit('message', {
+                    text: message,
+                    pseudo: socket.handshake.session.user.pseudo,
+                    channel: channel
+                });
+            } else {
+                // Send a message to the channel
+                socket.to(channel).emit('message', {
+                    text: message,
+                    pseudo: socket.handshake.session.user.pseudo,
+                    channel: channel
+                });
+            }
         } else {
             socket.emit('error', "Vous devez avoir un pseudo!");
             console.log("ERROR : User has no pseudo yet");
@@ -98,24 +109,37 @@ io.sockets.on('connection', socket => {
         }
     });
 
-    socket.on('disconnect', () => {
-        if(typeof socket.pseudo !== 'undefined') {
+    socket.on('log off', callback => {
+        if(typeof socket.handshake.session.user !== 'undefined') {
             console.log(socket.handshake.session.user.pseudo + " disconnect from server.");
             socket.broadcast.emit('disconnection', socket.handshake.session.user.pseudo);
             delete socket.handshake.session.user;
             socket.handshake.session.save();
+            callback(null);
         }
     });
 
-    socket.on('joinChannel', channelName => {
-        channelsList.push(channelName);
-        socket.join(channelName);
+    socket.on('disconnect', () => {
+        // trigered when sockets connexion closed
+    });
+
+    socket.on('joinChannel', (channelName, callback) => {
+        if (channelsList.includes(channelName)) {
+            socket.handshake.session.user.channelsList.push(channelName);
+            socket.handshake.session.save();
+            socket.join(channelName);
+            callback(channelName);
+        } else {
+            callback(null);
+        }
     })
 
-    socket.on('createChannel', channelName => {
+    socket.on('createChannel', (channelName, callback) => {
         channelsList.push(channelName);
         socket.join(channelName);
-        socket.handshake.session.user.channelsList
+        socket.handshake.session.user.channelsList.push(channelName);
+        socket.handshake.session.save();
+        callback(channelName);
     })
 
     socket.on('checkSocket', () => {
