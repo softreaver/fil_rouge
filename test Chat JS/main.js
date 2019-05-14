@@ -1,21 +1,33 @@
 "use-strict";
 
-//Loading modules
+// Constants
+const SESSION_DURATION = 259200000; // 72 hours
+const CRON_TASK_FREQUENCY = 300000; // 5 min
+
+// Globals
+var channelsList = [];
+var users = [];
+
+// Loading modules
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var fs = require('fs');
 var ent = require('ent'); // To avoid XSS attack by filtering HTML tags.
-var channelsList = [];
 var session = require("express-session")({
     secret: "sessionSuperChat",
     resave: true,
     saveUninitialized: true,
-    cookie: {maxAge: 259200000}
+    cookie: {maxAge: SESSION_DURATION}
   }),
   sharedsession = require("express-socket.io-session");
 
-//Starting the server
+// Cron task to clean userList
+setInterval(() => {
+    // Check and remove all deleted 
+}, CRON_TASK_FREQUENCY);
+
+// Starting the server
 server.listen(3000);
 
 app.use(session)
@@ -59,6 +71,7 @@ io.sockets.on('connection', socket => {
         } else {
             if (socket.handshake.session.user && socket.handshake.session.user.pseudo) {
                 sessionIsUp = true;
+                if (socket.handshake.session.user.timeOutID) { clearTimeout(socket.handshake.session.user.timeOutID); }
             }
         }
 
@@ -79,6 +92,7 @@ io.sockets.on('connection', socket => {
         console.log('Pseudo reçu : ' + pseudo);
         socket.handshake.session.user = {pseudo: pseudo, channelsList: ['default']};
         socket.handshake.session.save();
+
         socket.broadcast.emit('connection', pseudo);
     });
 
@@ -109,9 +123,21 @@ io.sockets.on('connection', socket => {
         }
     });
 
+    socket.on('privateMessage', (pseudo, message) => {
+        let socketDest = findSocketByPseudo(pseudo);
+        if (socketDest !== null) {
+            socketDest.emit('privateMessage', {
+                text: message,
+                pseudo: socket.handshake.session.user.pseudo,
+                channel: null
+            });
+        }
+    });
+
     socket.on('log off', callback => {
         if(typeof socket.handshake.session.user !== 'undefined') {
             console.log(socket.handshake.session.user.pseudo + " disconnect from server.");
+
             socket.broadcast.emit('disconnection', socket.handshake.session.user.pseudo);
             delete socket.handshake.session.user;
             socket.handshake.session.save();
@@ -143,9 +169,33 @@ io.sockets.on('connection', socket => {
     })
 
     socket.on('checkSocket', () => {
-        console.log(io.sockets.clients());
+        console.log('liste des utilisateurs connectés :');
+        for (let socketID in io.sockets.connected) {
+            console.log((io.sockets.connected[socketID].handshake.session.user && io.sockets.connected[socketID].handshake.session.user.pseudo) || 'unknown');
+        }
+        console.log('liste des utilisateurs :');
+        for (let socketID in io.sockets.sockets) {
+            console.log((io.sockets.sockets[socketID].handshake.session.user && io.sockets.sockets[socketID].handshake.session.user.pseudo) || 'unknown');
+        }
     });
 });
+
+function findSocketByPseudo (pseudo = null) {
+    let socketToReturn = null;
+    if (pseudo !== null) {
+        for (let socketID in io.sockets.connected) {
+            if (io.sockets.connected[socketID].handshake.session.user && 
+                io.sockets.connected[socketID].handshake.session.user.pseudo &&
+                io.sockets.connected[socketID].handshake.session.user.pseudo == pseudo
+            ) {
+                socketToReturn = io.sockets.connected[socketID];
+                break;
+            }
+        }
+    }
+
+    return socketToReturn;
+}
 
 var nsp = io.of('private');
 nsp.on('connection', socket => {
