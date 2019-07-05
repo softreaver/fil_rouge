@@ -6,51 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" type="text/css" href="../css/main.css">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        #messages-list {
-            box-shadow: inset 0 0 5px grey;
-            height: 80vh;
-            overflow-y: scroll;
-            scroll-behavior: smooth;
-            padding: 2em;
-        }
-
-        .pseudo {
-            font-weight: bold;
-            color: grey;
-        }
-
-        .notification {
-            font-style: italic;
-            color: blue;
-        }
-
-        #send-message-form {
-            display: flex;
-        }
-
-        #message-input {
-            flex-flow: 1;
-            width: 80VW;
-            height: 3em;
-        }
-
-    </style>
+    <link rel="stylesheet" href="../css/bootstrap.css">
     <title>Document</title>
 </head>
 
 <body>
     <h1>Super Chat</h1>
-    <div id="messages-list">
-        <!-- HERE - List of all messages -->
+    <div class="row">
+        <div class="col-3">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active" id="v-pills-default-tab" data-toggle="pill" href="#v-pills-default"
+                    role="tab" aria-controls="v-pills-default" aria-selected="true">default</a>
+                <!-- <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Channel name</a> -->
+            </div>
+        </div>
+        <div class="col-9">
+            <div class="tab-content" id="v-pills-tabContent">
+                <div class="tab-pane fade show active" id="v-pills-default" role="tabpanel"
+                    aria-labelledby="v-pills-default">
+                    <div class="messages-list" id="messages-list-default">
+                        <!-- HERE - List of all messages -->
+                    </div>
+                </div>
+                <!--
+            <div class="tab-pane fade" id="v-pills-channel-name" role="tabpanel" aria-labelledby="v-pills-channel-name">
+                <div class="messages-list" id="messages-list-channel-name">
+                    HERE - List of all messages
+                </div>
+            </div>
+            -->
+            </div>
+        </div>
     </div>
+
     <form id="send-message-form" method="POST">
         <input type="text" name="message" id="message-input" autocomplete="off">
         <button type="submit">Envoyer</button>
+        <button id="disconnect-button" type="button">Se déconnecter</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -58,12 +50,43 @@
         var audio = new Audio('../sounds/newMessage.mp3');
 
         var socket = io.connect(':3000');
+        var myPseudo = null;
+        var myChannelsList = ['default'];
+        var unreadMap = {};
+
         socket.on('connect_error', error => {
             console.log(error);
         });
-        var pseudo = prompt('entrez votre pseudo : ', '');
 
-        socket.emit('pseudo', pseudo);
+        socket.on('welcomeBack', user => {
+            myPseudo = user.pseudo;
+            myChannelList = user.channelsList;
+
+            // Refresh channels list
+            for (let channelName of user.channelsList) {
+                let channel = channelName.replace(/ /g, '-');
+                // if the room link is not already in the list
+                if (!document.getElementById('v-pills-' + channel + '-tab')) {
+                    addNewRoomTab(channelName);
+                }
+            }
+        });
+
+        socket.on('whoAreYou', () => {
+            let check = false;
+            while (!check) {
+                myPseudo = prompt('Entrez un pseudo (au moins 3 caratcères) :', '');
+
+                // Check if pseudo is correct
+                if (myPseudo && myPseudo.trim().length >= 3) {
+                    check = true;
+                } else {
+                    alert("Merci d'entrer un pseudo correcte !");
+                }
+            }
+
+            socket.emit('pseudo', myPseudo);
+        });
 
         socket.on('connection', pseudo => {
             writeMessage({
@@ -74,8 +97,14 @@
 
         socket.on('message', message => {
             if (typeof message !== 'undefined')
-                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined')
+                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined' && typeof message.channel !== 'undefined' && myPseudo != message.pseudo)
                     writeMessage(message);
+        });
+
+        socket.on('privateMessage', message => {
+            if (typeof message !== 'undefined')
+                if (typeof message.text !== 'undefined' && typeof message.pseudo !== 'undefined')
+                    alert('You have a message from ' + message.pseudo + ' => ' + message.text);
         });
 
         socket.on('disconnection', pseudo => {
@@ -85,6 +114,44 @@
             }, true);
         });
 
+        document.getElementById('disconnect-button').addEventListener('click', event => {
+            socket.emit('log off', err => {
+                if (!err) {
+                    socket.disconnect();
+                }
+            });
+        });
+
+        document.getElementById('send-message-form').addEventListener('submit', event => {
+            event.preventDefault();
+            let inputElt = document.getElementById('message-input');
+
+            if (inputElt.value.trim().length > 0) {
+                if (inputElt.value.indexOf('/') === 0 && inputElt.value.length > 1 && inputElt.value.substr(1, 3) == 'to ') {
+                    socket.emit('privateMessage', inputElt.value.substr(4, inputElt.value.indexOf(' ', 4) - 4), inputElt.value.substr(inputElt.value.indexOf(' ', 4) + 1));
+                } else if (inputElt.value.indexOf('/') === 0 && inputElt.value.length > 1 && inputElt.value.substr(1, 7) == 'create ') {
+                    socket.emit('createChannel', inputElt.value.substr(8), channelName => {
+                        addNewRoomTab(channelName);
+                    });
+                } else if (inputElt.value.indexOf('/') === 0) {
+                    socket.emit('checkSocket');
+                } else {
+                    // retrive active channel name
+                    let channel = document.querySelector(`.nav-link.active`).firstChild.data.trim();
+                    socket.emit('message', inputElt.value, channel);
+                    writeMessage({
+                        text: inputElt.value,
+                        pseudo: myPseudo,
+                        channel: channel
+                    });
+                }
+                inputElt.value = '';
+            }
+        });
+
+        let navLink = document.getElementById('v-pills-default-tab');
+        tabClickEventHandler(navLink);
+
         function writeMessage(message, isNotification = false) {
             let messageElt = document.createElement('p');
             messageElt.innerHTML = `
@@ -93,41 +160,123 @@
             if (isNotification)
                 messageElt.className = "notification";
             else
-                if(message.pseudo !== pseudo)
+                if (message.pseudo !== myPseudo)
                     audio.play();
 
-            let messagesListElt = document.getElementById('messages-list');
+            let channel = (message.channel && message.channel.replace(/ /g, '-')) || 'default';
+            let activeChannel = document.querySelector(`.nav-link.active`).firstChild.data;
+            let messagesListElt = document.getElementById('messages-list-' + channel);
             let scrollToBottom = false;
 
-            if(messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight > -10 &&
-            messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight < 10)
+            if (messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight > -10 &&
+                messagesListElt.scrollTop + messagesListElt.clientHeight - messagesListElt.scrollHeight < 10)
                 scrollToBottom = true;
 
             messagesListElt.appendChild(messageElt);
-            
-            if(scrollToBottom) 
-                messagesListElt.scrollTo(0, messagesListElt.scrollHeight - messagesListElt.clientHeight);
 
+            // Check if channel is the active channel. Is not then increment unread message
+            if (activeChannel != message.channel) {
+                if (!unreadMap[channel]) {
+                    unreadMap[channel] = 0;
+                }
+                // Create/Retrieve unread tag on channel button
+                let tagElt;
+                tagElt = document.querySelector(`#v-pills-${ channel }-tab>.unread`);
+                if (!tagElt) {
+                    tagElt = document.createElement('span');
+                    tagElt.className = 'unread';
+                    document.getElementById('v-pills-' + channel + '-tab').appendChild(tagElt);
+                }
+                unreadMap[channel]++;
+                tagElt.textContent = unreadMap[channel];
+            }
+
+            if (scrollToBottom) {
+                // messagesListElt.scrollTo(0, messagesListElt.scrollHeight - messagesListElt.clientHeight);
+                messagesListElt.scrollTop = messagesListElt.scrollHeight;
+            }
         }
 
-        document.getElementById('send-message-form').addEventListener('submit', event => {
-            event.preventDefault();
-            let inputElt = document.getElementById('message-input');
+        function addNewRoomTab(channelName) {
+            if (channelName) {
+                let tabContainer = document.getElementById('v-pills-tab');
+                let channel = channelName.replace(/ /g, '-');
+                tabContainer.insertAdjacentHTML('beforeend', `
+                    <a class="nav-link" id="v-pills-${ channel }-tab" data-toggle="pill" href="#v-pills-${ channel }" role="tab" aria-controls="v-pills-${ channel }" aria-selected="true">${ channelName }</a>
+                `);
 
-            if (inputElt.value.trim().length > 0) {
-                if(inputElt.value.indexOf('/') === 0) {
-                    socket.emit('checkSocket');
-                } else {
-                    socket.emit('message', inputElt.value);
-                    writeMessage({
-                        text: inputElt.value,
-                        pseudo: pseudo
-                    });
-                }
-                inputElt.value = '';
+                let tabContentContainer = document.getElementById('v-pills-tabContent');
+                tabContentContainer.insertAdjacentHTML('beforeend', `
+                    <div class="tab-pane fade" id="v-pills-${ channel }" role="tabpanel" aria-labelledby="v-pills-${ channel }">
+                        <div class="messages-list" id="messages-list-${ channel }"></div>
+                    </div>
+                `);
+
+                tabClickEventHandler(document.getElementById(`v-pills-${ channel }-tab`));
             }
+        }
+
+        function tabClickEventHandler (element) {
+            element.addEventListener('click', event => {
+                // find active nav link and remove class 'active'
+                let activeLink = document.querySelector('.nav-link.active');
+                if (activeLink) {
+                    activeLink.classList.remove('active');
+                }
+
+                event.currentTarget.classList.add('active');
+
+                let activeTabContent = document.querySelector('.tab-pane.active');
+                if (activeTabContent) {
+                    activeTabContent.classList.remove('show', 'active');
+                }
                 
-        });
+                document.getElementById(event.currentTarget.getAttribute('href').substr(1)).classList.add('show', 'active');
+
+                // Retrieve channel name
+                let channel = event.currentTarget.getAttribute('href').substr(9);
+
+                // Remove new messages line before
+                let newMessagesLineElt = document.getElementById('new-messages-line');
+                if (newMessagesLineElt) {
+                    newMessagesLineElt.parentElement.removeChild(newMessagesLineElt);
+                } else {
+                    newMessagesLineElt = document.createElement('div');
+                    newMessagesLineElt.id= 'new-messages-line';
+                }
+                // Add new 'new messages' line
+                let messagesListElt = document.getElementById(`messages-list-${ channel }`);
+
+                if (messagesListElt) {
+                    // get how many unread messages there are
+                    let unreadCount = unreadMap[channel];
+                    if (Number.isInteger(unreadCount) && unreadCount > 0) {
+                        unreadMap[channel] = 0;
+                        let messagesElt = messagesListElt.getElementsByTagName('p');
+                        let indexOfLastOldMessage = messagesElt.length - unreadCount;
+
+                        if (indexOfLastOldMessage > 0) {
+                            // position line break just after the last old message
+                            let lastOldMessageElt = messagesListElt.querySelector(`:nth-child(${ indexOfLastOldMessage })`);
+
+                            if (lastOldMessageElt) {
+                                lastOldMessageElt.insertAdjacentElement('afterend', newMessagesLineElt);
+                            }
+                        } else {
+                            messagesListElt.insertAdjacentElement('afterbegin', newMessagesLineElt);
+                        }
+
+                        setTimeout(() => newMessagesLineElt.scrollIntoView(true), 100);
+                    }
+                }
+
+                // Remove unread tag from tab
+                let tagToRemove = event.currentTarget.querySelector('.unread');
+                if (tagToRemove) {
+                    event.currentTarget.removeChild(tagToRemove);
+                }
+            });
+        }
     </script>
 </body>
 
