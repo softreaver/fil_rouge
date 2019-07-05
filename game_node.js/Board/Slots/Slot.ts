@@ -47,10 +47,12 @@ export abstract class Slot implements EventTargetable, Listenable {
         }
     }
 
+    public readonly _addEvent = 'addEvent';
     public addEvent(cardEvent: CardEvent) {
         this.eventsList.push(cardEvent);
     }
 
+    public readonly _removeEvent = 'removeEvent';
     public removeEvent(cardEvent: CardEvent) {
         let index = this.eventsList.indexOf(cardEvent);
 
@@ -61,24 +63,29 @@ export abstract class Slot implements EventTargetable, Listenable {
         }
     }
 
+    public readonly _addToEventListener = 'addToEventListener';
     public addToEventListener(cardEvent: CardEvent, methodName: string) {
         
     }
 
+    public readonly _removeFromEventListener = 'removeFromEventListener';
     public removeFromEventListener(cardEvent: CardEvent) {
         throw new Error("Method not implemented.");
     }
 
+    public readonly _hasCard = 'hasCard';
     private hasCard(): boolean {
         return this.card === null ? false : true;
     }
 
+    public readonly _discard = 'discard';
     private discard(): void {
         if (this.hasCard) {
             
         }
     }
 
+    public readonly _getID = 'getID';
     /**
      * Getter ID
      * @return {string}
@@ -87,6 +94,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.ID;
     }
     
+    public readonly _getPlayer = 'getPlayer';
     /**
      * Getter Player
      * @return {string}
@@ -95,6 +103,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.player;
 	}
 
+    public readonly _getCardEventListener = 'getCardEventListener';
     /**
      * Getter cardEventListener
      * @return {CardEventListener}
@@ -103,6 +112,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.cardEventListener;
 	}
 
+    public readonly _getLeftSlot = 'getLeftSlot';
     /**
      * Getter leftSlot
      * @return {Slot}
@@ -111,6 +121,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.leftSlot;
 	}
 
+    public readonly _getRightSlot = 'getRightSlot';
     /**
      * Getter rightSlot
      * @return {Slot}
@@ -119,6 +130,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.rightSlot;
 	}
 
+    public readonly _getFrontSlot = 'getFrontSlot';
     /**
      * Getter frontSlot
      * @return {Slot}
@@ -127,6 +139,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.frontSlot;
 	}
 
+    public readonly _getBackSlot = 'getBackSlot';
     /**
      * Getter backSlot
      * @return {Slot}
@@ -135,6 +148,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.backSlot;
 	}
 
+    public readonly _getCard = 'getCard';
     /**
      * Getter card
      * @return {Card}
@@ -143,6 +157,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		return this.card;
 	}
 
+    public readonly _setID = 'setID';
     /**
      * Setter ID
      * @param {string} value
@@ -151,6 +166,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.ID = value;
 	}
 
+    public readonly _setCardEventListener = 'setCardEventListener';
     /**
      * Setter cardEventListener
      * @param {CardEventListener} value
@@ -159,6 +175,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.cardEventListener = value;
 	}
 
+    public readonly _setLeftSlot = 'setLeftSlot';
     /**
      * Setter leftSlot
      * @param {Slot} value
@@ -167,6 +184,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.leftSlot = value;
 	}
 
+    public readonly _setRightSlot = 'setRightSlot';
     /**
      * Setter rightSlot
      * @param {Slot} value
@@ -175,6 +193,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.rightSlot = value;
 	}
 
+    public readonly _setFrontSlot = 'setFrontSlot';
     /**
      * Setter frontSlot
      * @param {Slot} value
@@ -183,6 +202,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.frontSlot = value;
 	}
 
+    public readonly _setBackSlot = 'setBackSlot';
     /**
      * Setter backSlot
      * @param {Slot} value
@@ -191,6 +211,7 @@ export abstract class Slot implements EventTargetable, Listenable {
 		this.backSlot = value;
 	}
 
+    public readonly _setCard = 'setCard';
     /**
      * Setter card
      * @param {Card} value

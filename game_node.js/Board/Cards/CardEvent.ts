@@ -1,15 +1,18 @@
 import { EventTargetable } from "../EventTargetable";
+import { Card } from "./Card";
 
 export class CardEvent {
 
     private turnsLeft: number;
     private effect: Function;
     private target: EventTargetable;
+    private from: Card;
 
-    public constructor (duration: number, effect: Function) {
+    public constructor (from: Card, duration: number, effect: Function) {
         this.turnsLeft = duration;
         this.effect = effect;
         this.target = null;
+        this.from = from;
     }
 
     public decreaseTimer (amount: number = 1) {
@@ -36,5 +39,9 @@ export class CardEvent {
 
     public setTarget (target: EventTargetable) {
         this.target = target;
+    }
+
+    public getEffect (): Function {
+        return this.effect;
     }
 }

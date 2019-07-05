@@ -57,4 +57,22 @@ export class Listener {
             default:
         }
     }
+
+    public getEventList (triger: number): Function[] {
+        let valueToReturn;
+        switch(triger) {
+            case Triger.Prevent:
+                valueToReturn = this.prevent;
+                break;
+            case Triger.Before:
+                valueToReturn = this.before;
+                break;
+            case Triger.After:
+                valueToReturn = this.after;
+                break;
+            default:
+                valueToReturn = [];
+        }
+        return valueToReturn;
+    }
 }
