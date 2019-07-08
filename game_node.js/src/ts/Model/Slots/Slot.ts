@@ -2,7 +2,7 @@ import { Card } from "../Cards/Card";
 import { CardEventListener } from "../CardEventListener";
 import { EventTargetable } from "../EventTargetable";
 import { CardEvent } from "../Cards/CardEvent";
-import { Player } from "../../Users/Player";
+import { Player } from "../Player";
 import { NotDoneException, NoSuchMethod } from "../../Exceptions/SpecialExceptions";
 import { Listenable } from "../Listenable";
 
