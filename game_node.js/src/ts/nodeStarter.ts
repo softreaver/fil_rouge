@@ -1,4 +1,5 @@
-import { AttackSlot } from "./Models/Slots/AttackSlot";
-import { Player } from "./Models/Player";
+"use strict";
 
-let mySlot = new AttackSlot(1, new Player());
+import { Global } from "./Global";
+import { Factory } from "./Factory";
+

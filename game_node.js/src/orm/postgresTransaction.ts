@@ -42,11 +42,11 @@ export class PostgresTransaction {
                 if (err) {
                     console.error('Error in SQL transaction', err.stack);
                     client.query('ROLLBACK', (err) => {
+                        // release the client back to the pool
+                        done();
                         if (err) {
                             console.error('Error rolling back client', err.stack);
                         }
-                        // release the client back to the pool
-                        done();
                     })
                 }
                 return !!err
@@ -83,10 +83,10 @@ export class PostgresTransaction {
                     if (shouldAbort(err)) throw new PostgresDAOException('Error in SQL transaction : ' + err.stack, PostgresTransaction.ERROR_MESSAGE_IHM);
 
                     client.query('COMMIT', (err) => {
+                        done();
                         if (err) {
                             throw new PostgresDAOException('Error committing transaction : ' + err.stack, PostgresTransaction.ERROR_MESSAGE_IHM);
                         }
-                        done();
                     });
                 }
 

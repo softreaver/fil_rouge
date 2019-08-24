@@ -1,4 +1,7 @@
+"use strict";
 
-export class Player {
+import { User } from "./User";
+
+export class Player extends User{
     
 }

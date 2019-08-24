@@ -46,7 +46,7 @@ export abstract class Utils {
                         if (arrayBuffer) {
                             let byteArray = new Uint8Array(arrayBuffer);
                             let blob = new Blob( [ byteArray ], { type: "image/jpeg" } );
-                            let urlCreator = window.URL || window.webkitURL;
+                            let urlCreator = window.URL // || window.webkitURL;
                             let imageUrl = urlCreator.createObjectURL( blob );
 
 							cbSuccess(imageUrl);
@@ -59,7 +59,7 @@ export abstract class Utils {
 
             oReq.send();
         } catch (err) {
-            App.log(new Error('[ERREUR] ' + (err.message || err)).stack)
+            console.error(new Error('[ERREUR] ' + (err.message || err)).stack)
             cbError('Erreur lors de la récupération de la photo n°');
         }
 	}

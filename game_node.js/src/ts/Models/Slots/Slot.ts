@@ -3,7 +3,7 @@ import { CardEventListener } from "../CardEventListener";
 import { EventTargetable } from "../EventTargetable";
 import { CardEvent } from "../Cards/CardEvent";
 import { Player } from "../Player";
-import { NotDoneException, NoSuchMethod } from "../../Exceptions/SpecialExceptions";
+import { NotDoneException, NoSuchMethodException } from "../../Exceptions/SpecialExceptions";
 import { Listenable } from "../Listenable";
 
 /**
@@ -43,7 +43,7 @@ export abstract class Slot implements EventTargetable, Listenable {
             // play any event 'after' hooked to this method
 
         } else {
-            throw new NoSuchMethod("No such method : " + methodName, "L'action demandée n'a pas fonctionnée.");
+            throw new NoSuchMethodException("No such method : " + methodName, "L'action demandée n'a pas fonctionnée.");
         }
     }
 

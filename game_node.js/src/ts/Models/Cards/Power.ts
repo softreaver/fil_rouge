@@ -9,18 +9,18 @@ enum Type {
 }
 
 enum Scope {
-    Row,
-    Column,
-    Aside,
-    Left,
-    Right,
-    Targeting,
-    AllAllies,
-    AllEnemies,
-    All,
-    AllButMe,
-    Self,
-    Custom
+    Row,            // All the row but the card owning this power
+    Column,         // All the column but the card owning this power
+    Aside,          // The cards on the right and left
+    Left,           // The card on the left
+    Right,          // The card on the right
+    Targeting,      // Choosed by the card's owner
+    AllAllies,      // All allies
+    AllEnemies,     // All ennemies
+    All,            // All cards on the board
+    AllButMe,       // All cards on the board but the one owning this power
+    Self,           // The card owning this power
+    Custom          // Targeting logic must be implemented using card slots methods
 }
 
 export class Power {
