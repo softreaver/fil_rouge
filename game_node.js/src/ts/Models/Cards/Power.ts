@@ -1,4 +1,5 @@
 import { PowerIdentity } from "./PowerIdentity";
+import { CardEvent } from "./CardEvent";
 
 enum Type {
     Init,
@@ -24,6 +25,7 @@ enum Scope {
 
 export class Power {
     public static readonly Type = Type;
+    public static readonly Scope = Scope;
 
     private name: string;
     private cost: number;
@@ -33,7 +35,7 @@ export class Power {
     private type: number;
     private scope: number;
     private effect: Function;
-    private event: Function;
+    private events: CardEvent[];
 
     public constructor (powerIdentity: PowerIdentity) {
         this.name = powerIdentity.name;
@@ -44,7 +46,7 @@ export class Power {
         this.type = powerIdentity.type;
         this.scope = powerIdentity.scope;
         this.effect = require('./' + powerIdentity.effectFile).effect;
-        this.event = require('./' + powerIdentity.effectFile).event;
+        this.events = require('./' + powerIdentity.effectFile).events || null;
     }
 
     /**
@@ -109,15 +111,15 @@ export class Power {
      */
 	public getEffect(): Function {
 		return this.effect;
-	}
-
+    }
+    
     /**
-     * Setter $name
-     * @param {string} value
+     * Getter events
+     * @return {Function}
      */
-	public setName(value: string) {
-		this.name = value;
-	}
+	public getEvents(): CardEvent[] {
+		return this.events;
+    }
 
     /**
      * Setter cost
@@ -136,43 +138,11 @@ export class Power {
 	}
 
     /**
-     * Setter text
-     * @param {string} value
-     */
-	public setText(value: string) {
-		this.text = value;
-	}
-
-    /**
      * Setter counter
      * @param {number} value
      */
 	public setCounter(value: number) {
 		this.counter = value;
-	}
-
-    /**
-     * Setter type
-     * @param {number} value
-     */
-	public setType(value: number) {
-		this.type = value;
-	}
-
-    /**
-     * Setter scope
-     * @param {number} value
-     */
-	public setScope(value: number) {
-		this.scope = value;
-	}
-
-    /**
-     * Setter effect
-     * @param {Function} value
-     */
-	public setEffect(value: Function) {
-		this.effect = value;
 	}
         
 }

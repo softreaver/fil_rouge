@@ -7,12 +7,14 @@ export class CardEvent {
     private effect: Function;
     private target: EventTargetable;
     private from: Card;
+    private description: string;
 
-    public constructor (from: Card, duration: number, effect: Function) {
+    public constructor (from: Card, duration: number, description: string, effect: Function) {
         this.turnsLeft = duration;
         this.effect = effect;
         this.target = null;
         this.from = from;
+        this.description = description;
     }
 
     public decreaseTimer (amount: number = 1) {
@@ -43,5 +45,13 @@ export class CardEvent {
 
     public getEffect (): Function {
         return this.effect;
+    }
+
+    public getFrom (): Card {
+        return this.from;
+    }
+
+    public getDescription (): string {
+        return this.description;
     }
 }

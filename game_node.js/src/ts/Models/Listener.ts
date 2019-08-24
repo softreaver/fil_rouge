@@ -1,3 +1,4 @@
+import { BadParameterException } from "../Exceptions/SpecialExceptions";
 
 enum Triger {
     Prevent,
@@ -7,6 +8,8 @@ enum Triger {
 
 export class Listener {
     public static readonly Triger = Triger;
+    private static readonly BAD_PARAMETER_TRIGER            = 'Triger not found. You should use Listener::Triger enum.';
+    private static readonly BAD_PARAMETER_MESSAGE_IHM       = 'Impossible d\'effectuer l\'action.';
 
     private prevent: Function[];
     private before: Function[];
@@ -30,6 +33,7 @@ export class Listener {
                 this.after.push(effect);
                 break;
             default:
+                throw new BadParameterException(Listener.BAD_PARAMETER_TRIGER, Listener.BAD_PARAMETER_MESSAGE_IHM);
         }
     }
 
@@ -55,6 +59,7 @@ export class Listener {
                     }
                 break;
             default:
+                throw new BadParameterException(Listener.BAD_PARAMETER_TRIGER, Listener.BAD_PARAMETER_MESSAGE_IHM);
         }
     }
 

@@ -1,4 +1,4 @@
-import { AttackSlot } from "./Model/Slots/AttackSlot";
-import { Player } from "./Model/Player";
+import { AttackSlot } from "./Models/Slots/AttackSlot";
+import { Player } from "./Models/Player";
 
 let mySlot = new AttackSlot(1, new Player());
