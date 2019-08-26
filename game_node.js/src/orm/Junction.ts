@@ -12,9 +12,33 @@ export class Junction {
     private foreignKey:string;
     private targetCol:string;
     private targetTable:string;
+    private otherEntity: string;
 
-    public constructor (type: number, foreignKey: string, targetCol: string, targetTable: string) {
-
+    public constructor (type: number, foreignKey: string, targetCol: string, targetTable: string, otherEntity: string) {
+        this.type = type;
+        this.foreignKey = foreignKey;
+        this.targetCol = targetCol;
+        this.targetTable = targetTable;
+        this.otherEntity = otherEntity;
     }
 
+    public getType(): number {
+        return this.type;
+    }
+
+    public getForeignKey(): string {
+        return this.foreignKey;
+    }
+
+    public getTargetCol(): string {
+        return this.targetCol;
+    }
+
+    public getTargetTable(): string {
+        return this.targetTable;
+    }
+
+    public getOtherEntity(): string {
+        return this.otherEntity;
+    }
 }

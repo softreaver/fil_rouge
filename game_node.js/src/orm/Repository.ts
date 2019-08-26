@@ -8,8 +8,9 @@ export class Repository {
     private dbName: string;
     private schema: string;
     private table: string;
-    private entity: Entity;
+    private entity: string;
     private junctions: Junction[];
+    private autoCommit: boolean;
 
     public constructor (dbName: string, schema: string, table: string, entity: string, junctions: Junction[] = null) {
         this.dbName = dbName;
@@ -17,21 +18,34 @@ export class Repository {
         this.table = table;
         this.entity = entity;
         this.junctions = junctions;
+        this.autoCommit = true;
     }
 
-    public insert (params: any[]) {
-
+    public insert (entities: Entity | Entity[]): number {
+        return 0;
     }
 
-    public delete (entityToRemove: Entity): void {
-
+    public delete (entityToRemove: Entity): number {
+        return 0;
     }
 
-    public update (entityToUpdate: Entity): void {
-
+    public update (entityToUpdate: Entity): number {
+        return 0;
     }
 
-    public find (args) {
+    public findAll (): Entity[] {
+        return [];
+    }
 
+    public deleteWhere (conditions): number {
+        return 0;
+    }
+
+    public findWhere (conditions): Entity[] {
+        return [];
+    }
+
+    public findOne (PKValue: any): Entity {
+        return null;
     }
 }
