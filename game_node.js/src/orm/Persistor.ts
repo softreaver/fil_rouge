@@ -3,6 +3,9 @@
 import { Repository } from "./Repository";
 import { Entity } from "./Entity";
 
+/**
+ * § test Persistor
+ */
 export interface Persistor {
     /**
      * @function setAutoCommit

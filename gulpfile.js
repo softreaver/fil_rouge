@@ -12,6 +12,7 @@ plugins.csso                = require('gulp-csso');
 plugins.ts                  = require('gulp-typescript');
 plugins.rename              = require('gulp-rename');
 plugins.minimify            = require('gulp-minify');
+plugins.readFile            = require('read-vinyl-file-stream');
 
 // Paths
 const SASS_SOURCES_CHAT     = 'game_chat/scss/*.scss';
@@ -47,6 +48,9 @@ const TS_DEST               = [
 // TypeScript compiler options
 const REMOVE_COMMENTS       = true;
 const ES_VERSION            = 'ES6';
+
+// Shared buffer
+var buffer = {};
 
 function sass () {
     let stream = mergeStream();
@@ -123,6 +127,30 @@ function generate_doc (cb) {
     });
 }
 
+function generate_global () {
+    let regex = new RegExp(/\*\s*?(§.+?(?:\r\n|\n))/, 'g');
+    buffer.tags = [];
+
+    let gulpStream = gulp.src('./game_node.js/src/**/*.ts')
+    .pipe(plugins.readFile(function (content, file, stream, cb) {
+        let match;
+        while (match = regex.exec(content)) {
+            buffer.tags.concat(match[1]);
+            console.log(match[1]);
+            // cb(null, newContent);
+        }
+        console.log(match);
+        cb();
+    }))
+    .pipe(gulp.dest('./test_fmk'));
+
+    return gulpStream;
+}
+
+function generate_factory () {
+
+}
+
 gulp.task(sass);
 gulp.task(min_css);
 gulp.task(sass_watch);
@@ -130,5 +158,24 @@ gulp.task(ts);
 gulp.task(min_js);
 gulp.task(ts_watch);
 gulp.task(generate_doc);
+gulp.task(generate_global);
 
 gulp.task('prod', gulp.series(sass, min_css, ts, min_js));
+
+
+// ||||||||||||| Multi fichier : 
+
+// var gulp = require('gulp');
+// var plugins = require('gulp-load-plugins')();
+
+// function getTask(task) {
+//     return require('./gulp-tasks/' + task)(gulp, plugins);
+// }
+
+// gulp.task('scripts', getTask('scripts'));
+// gulp.task('sass', getTask('sass'));
+
+// gulp.task('default', ['scripts', 'sass'], function () {
+//     gulp.watch('src/js/**/*.js', ['scripts']);
+//     gulp.watch('src/sass/**/*.{sass,scss}', ['sass']);
+// });
