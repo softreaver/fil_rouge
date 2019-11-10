@@ -1,4 +1,4 @@
-"user_strict";
+"use strict";
 
 import { PostgresDAOException } from "../Exceptions/SpecialExceptions";
 import { Factory } from "../Factory";
@@ -7,7 +7,7 @@ import { Repository } from "./Repository";
 import { Entity } from "./Entity";
 
 /**
- * § testPostgresORM ()
+ * §@PostgresORM
  */
 export class PostgresTransaction implements Persistor {
     public static readonly ERROR_MESSAGE_IHM   = "Problème lors de la transaction avec la base de données.";
