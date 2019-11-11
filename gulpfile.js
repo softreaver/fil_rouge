@@ -134,6 +134,8 @@ function generate_doc(cb) {
 function generate_global() {
     buffer.tags = [];
 
+    console.log('Generating Global file...');
+
     let gulpStream = gulp.src('./game_node.js/src/global.json')
         .pipe(plugins.readFile(function (content, file, stream, cb) {
             let generatedContent = '"use strict";\n\nexport abstract class Global {\n';
@@ -179,10 +181,12 @@ function generate_global() {
         }))
         .pipe(gulp.dest(TMP_COMPIL_PATH));
 
+    console.log('End of Global generation');
     return gulpStream;
 }
 
 function extract_entities() {
+    console.log('Searching entities definition...');
     // Extracts wiring symbols and corresponding class name
     let symbolsExtarctorRegex = new RegExp(/\*\s*?§(.+?)(?:\r\n|\n)+(?:.*\/)(?:\r\n|\n)(?:\w+\s+)*class\s+(\w+)/, 'g');
     let constructorInjectionRegex = new RegExp(/.+?=\s*(?:\/\*\*\s*§(.+?)\*\/)+/, 'g');
@@ -206,10 +210,12 @@ function extract_entities() {
             cb();
         }));
 
+    console.log('End of entities definition research');
     return gulpStream;
 }
 
 function generate_factory() {
+    console.log('Start Facotry generation...');
     let stream = plugins.source('FactoryTest.ts');
     let generatedContent = '"use strict";\n\n';
 
@@ -229,10 +235,12 @@ function generate_factory() {
     stream.end(generatedContent);
     stream.pipe(gulp.dest(TMP_COMPIL_PATH));
 
+    console.log('End of Factory generation');
     return stream;
 }
 
 function inject_entities() {
+    console.log('Start entities injections...');
     // Search for injection symbols
     let injectionSymbolsRegex = new RegExp(/class.*\{.*\*\s*?§(.+?)(?:\r\n|\n)+(?:.*\/).*?(\w+)(?:;|$)/, 'gsm');
     let constructorInjectionRegex = new RegExp(/.+?=\s*(?:\/\*\*\s*§(.+?)\*\/)+/, 'g');
@@ -295,6 +303,7 @@ function inject_entities() {
         }))
         .pipe(gulp.dest(TMP_COMPIL_PATH));
 
+    console.log('End of entities injections.');
     return gulpStream;
 }
 
@@ -329,14 +338,13 @@ function _editConstructorParams(sharedBuffer, newContent, match, file) {
     return newContent;
 }
 
-function _cleanUpTmp() {
-    console.log(plugins.path.basename('test_fmk'));
-    let path = TMP_COMPIL_PATH;
+function _cleanUpTmp(path) {
+    path = path || TMP_COMPIL_PATH;
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach((file, index) => {
-            const curPath = path.join(path, file);
+            const curPath = plugins.path.join(path, file);
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
+                _cleanUpTmp(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
             }
@@ -351,6 +359,15 @@ function bringme(done) {
     extract_entities();
     generate_factory();
     inject_entities();
+
+    if (process.argv.includes('--no-clean')) {
+        console.log('No cleaning');
+    } else {
+        console.log('Cleaning up tempory files...');
+        _cleanUpTmp();
+    }
+
+    done();
 }
 
 gulp.task(sass);
