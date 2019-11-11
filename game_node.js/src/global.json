@@ -1,0 +1,23 @@
+{
+    "fs": {
+        "desc": "API Node.js pour la lecure et l'écriture de fichier",
+        "type": "node.js",
+        "source": "fs"
+    },
+    "LOGS_PATH": {
+        "desc": "Emplacement où écrire les logs",
+        "type": "value",
+        "source": "./logs"
+    },
+    "pool": {
+        "desc": "API de connexion à la BDD",
+        "type": "node.js",
+        "source": "pg.Pool",
+        "constructor": ["poolParams"]
+    },
+    "poolParams": {
+        "desc": "Configuration de connexion à la BDD",
+        "type": "json",
+        "source": "./globalConf/pool.json"
+    }
+}

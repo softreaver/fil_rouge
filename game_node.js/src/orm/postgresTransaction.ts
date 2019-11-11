@@ -1,7 +1,7 @@
 "use strict";
 
 import { PostgresDAOException } from "../Exceptions/SpecialExceptions";
-import { Factory } from "../Factory";
+import { Factory } from "../Factory2";
 import { Persistor } from "./Persistor";
 import { Repository } from "./Repository";
 import { Entity } from "./Entity";

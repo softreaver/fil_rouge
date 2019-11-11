@@ -9,6 +9,6 @@ export abstract class Global {
         host: 'localhost',
         database: 'test_node',
         password: '',
-        port: 5432,
+        port: 5432
     };
 }

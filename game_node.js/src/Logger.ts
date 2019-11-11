@@ -20,6 +20,9 @@ let LEVEL = [
     'CRITICAL'
 ];
 
+/**
+ * § @Logger!
+ */
 export class Logger {
     private static instance: Logger;
     private static readonly LOGS_PATH = Global.LOGS_PATH;
