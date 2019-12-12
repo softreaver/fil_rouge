@@ -9,7 +9,7 @@ export class Query {
     private sql: string;
     private params: any[];
 
-    public constructor (sql: string = /**§@PostgresORM */, params: any[]) {
+    public constructor (sql: string = /**§@testPostgresORM */, params: any[]) {
         this.sql = sql;
         this.params = params;
     }

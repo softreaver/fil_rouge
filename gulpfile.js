@@ -18,7 +18,7 @@ plugins.source = require('vinyl-source-stream');
 plugins.path = require('path');
 
 // Paths
-const TMP_COMPIL_PATH = './test_fmk';   // The path where compiled files are stored before there go into the dist folder
+const TMP_COMPIL_PATH = './test_fmk';   // The path where compiled files are stored before they go into the dist folder
 const SASS_SOURCES_CHAT = 'game_chat/scss/*.scss';
 const SASS_SOURCES_CLIENT = 'game_client/src/Views/scss/*.scss';
 const SASS_DEST_CHAT = 'game_chat/css/';
@@ -189,7 +189,7 @@ function extract_entities() {
     console.log('Searching entities definition...');
     // Extracts wiring symbols and corresponding class name
     let symbolsExtarctorRegex = new RegExp(/\*\s*?§(.+?)(?:\r\n|\n)+(?:.*\/)(?:\r\n|\n)(?:\w+\s+)*class\s+(\w+)/, 'g');
-    let constructorInjectionRegex = new RegExp(/.+?=\s*(?:\/\*\*\s*§(.+?)\*\/)+/, 'g');
+
     buffer.entities = {};
 
     let gulpStream = gulp.src('./game_node.js/src/**/*.ts')
@@ -254,7 +254,7 @@ function inject_entities() {
             let mustImportFactory = false;
             let mustImportGlobal = false;
 
-            console.log(`Treating ${_extractFileNameFromFD(file)} ...`);
+            console.log(`${_extractFileNameFromFD(file)} treated ...`);
 
             while (match = injectionSymbolsRegex.exec(content)) {
                 mustImportFactory = true;
@@ -312,9 +312,9 @@ function _extractFileNameFromFD(fd) {
 }
 
 function _editClassAttribute(sharedBuffer, newContent, match, file) {
-    let entityToInject = match[1];
+    let entityToInject = match[1].replace(/\s/g, '');
     let variableToInit = match[2];
-    entityToInject = match[1].replace(/\s/g, '');
+
     // Entities must exists
     if (!sharedBuffer.entities[entityToInject]) {
         throw new Error(`Error in the file ${_extractFileNameFromFD(file)} ! The entity ${entityToInject} does not exist !`);
@@ -329,12 +329,23 @@ function _editClassAttribute(sharedBuffer, newContent, match, file) {
     newValue += ` = Factory.get${entityToInject.replace(/@/g, '')}()` + tail;
     newContent = newContent.replace(variableToInit, newValue);
 
-    console.log(`${entityToInject} was injected in the file`);
+    console.log(`==>> ${entityToInject} was injected in the class`);
 
     return newContent;
 }
 
 function _editConstructorParams(sharedBuffer, newContent, match, file) {
+    let entityToInject = match[1].replace(/\s/g, '');
+    // Entities must exists
+    if (!sharedBuffer.entities[entityToInject]) {
+        throw new Error(`Error in the file ${_extractFileNameFromFD(file)} ! The entity ${entityToInject} does not exist !`);
+    }
+
+    let newValue = ` = Factory.get${entityToInject.replace(/@/g, '')}()`;
+    newContent = newContent.replace(/\/\*\*\s*§\s*@?\s*\w+\s*\*\//g, newValue);
+
+    console.log(`==>> ${entityToInject} was injected in the constructor`);
+
     return newContent;
 }
 
@@ -346,9 +357,11 @@ function _cleanUpTmp(path) {
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 _cleanUpTmp(curPath);
             } else { // delete file
+                console.log('RM file ' + curPath)
                 fs.unlinkSync(curPath);
             }
         });
+        console.log('RM folder ' + path)
         fs.rmdirSync(path);
     }
 }
@@ -356,18 +369,36 @@ function _cleanUpTmp(path) {
 function bringme(done) {
     _cleanUpTmp();
     generate_global();
-    extract_entities();
-    generate_factory();
-    inject_entities();
+    new Promise((success, reject) => {
+        try {
+            extract_entities();
+            success();
+        } catch (error) {
+            reject();
+        }
+    }).then(() => {
+        new Promise((success, reject) => {
+            try {
+                generate_factory();
+                inject_entities();
+                success();
+            } catch (error) {
+                reject();
+            }
+        }).then(() => {
+            if (process.argv.includes('--no-clean')) {
+                console.log('No cleaning (tempory file is ' + TMP_COMPIL_PATH + ')');
+            } else {
+                console.log('Cleaning up tempory files...');
+                _cleanUpTmp();
+            }
+            done();
+        });
+    });
+    
+    
 
-    if (process.argv.includes('--no-clean')) {
-        console.log('No cleaning');
-    } else {
-        console.log('Cleaning up tempory files...');
-        _cleanUpTmp();
-    }
-
-    done();
+    
 }
 
 gulp.task(sass);
