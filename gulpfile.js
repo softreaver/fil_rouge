@@ -49,6 +49,9 @@ const TS_DEST = [
     TS_DEST_NODE
 ];
 
+const GLOBAL_FILE_NAME = 'GlobalTest';
+const FACTORY_FILE_NAME = 'FactoryTest';
+
 // TypeScript compiler options
 const REMOVE_COMMENTS = true;
 const ES_VERSION = 'ES6';
@@ -156,6 +159,7 @@ function generate_global() {
                             rValue = fs.readFileSync('./game_node.js/src/' + buffer.globalConfig[entity].source);
                             //Check JSON format
                             JSON.parse(rValue);
+                            rValue = `JSON.parse('${ String(rValue).replace(/(\n|\r\n)/g, '') }')`;
                             break;
                         case "value":
                             rValue = buffer.globalConfig[entity].source;
@@ -176,7 +180,7 @@ function generate_global() {
             cb(null, generatedContent);
         }))
         .pipe(plugins.rename(function (path) {
-            path.basename = "Global";
+            path.basename = GLOBAL_FILE_NAME;
             path.extname = ".ts";
         }))
         .pipe(gulp.dest(TMP_COMPIL_PATH));
@@ -215,19 +219,27 @@ function extract_entities() {
 }
 
 function generate_factory() {
-    console.log('Start Facotry generation...');
-    let stream = plugins.source('FactoryTest.ts');
+    console.log('Start Factory generation...');
+    let stream = plugins.source(FACTORY_FILE_NAME + '.ts');
     let generatedContent = '"use strict";\n\n';
 
     // Import all needed entities
     for (let entity in buffer.entities) {
-        generatedContent += `import { ${buffer.entities[entity].className} } from "./${buffer.entities[entity].fileName}";\n`;
+        generatedContent += `import { ${buffer.entities[entity].className} } from "./${buffer.entities[entity].fileName.replace(/(\..*)$/, '')}";\n`;
     }
     generatedContent += '\nexport abstract class Factory {\n';
     // Create getters
     for (let entity in buffer.entities) {
-        generatedContent += `\tpublic static get${entity} () {\n`;
-        generatedContent += `\t\treturn new ${buffer.entities[entity].className}();\n`;
+        // Clean entityName by removing @ and ! characters
+        let entityName = _cleanUpEntityName(entity);
+        generatedContent += `\tpublic static get${entityName} () {\n`;
+
+        // If entity is a singleton use getInstance() method instead of constructor
+        if (_isSingleton(entity)) {
+            generatedContent += `\t\treturn ${buffer.entities[entity].className}.getInstance();\n`;
+        } else {
+            generatedContent += `\t\treturn new ${buffer.entities[entity].className}();\n`;
+        }
         generatedContent += `\t}\n`;
     }
     generatedContent += '}\n';
@@ -237,6 +249,23 @@ function generate_factory() {
 
     console.log('End of Factory generation');
     return stream;
+}
+
+function _isSingleton(entityName) {
+    // If entity has exclamation point in the name it is a singleton
+    let exclamCheck = new RegExp(/!/);
+    let ret = false;
+    if (exclamCheck.exec(entityName)) {
+        ret = true;
+    }
+    return ret;
+}
+
+function _cleanUpEntityName(entityName) {
+    entityName = entityName.replace('@', '');
+    entityName = entityName.replace('!', '');
+
+    return entityName;
 }
 
 function inject_entities() {
@@ -366,41 +395,6 @@ function _cleanUpTmp(path) {
     }
 }
 
-function bringme(done) {
-    _cleanUpTmp();
-    generate_global();
-    new Promise((success, reject) => {
-        try {
-            extract_entities();
-            success();
-        } catch (error) {
-            reject();
-        }
-    }).then(() => {
-        new Promise((success, reject) => {
-            try {
-                generate_factory();
-                inject_entities();
-                success();
-            } catch (error) {
-                reject();
-            }
-        }).then(() => {
-            if (process.argv.includes('--no-clean')) {
-                console.log('No cleaning (tempory file is ' + TMP_COMPIL_PATH + ')');
-            } else {
-                console.log('Cleaning up tempory files...');
-                _cleanUpTmp();
-            }
-            done();
-        });
-    });
-    
-    
-
-    
-}
-
 gulp.task(sass);
 gulp.task(min_css);
 gulp.task(sass_watch);
@@ -412,7 +406,19 @@ gulp.task(generate_global);
 gulp.task(extract_entities);
 gulp.task(generate_factory);
 gulp.task(inject_entities);
-gulp.task(bringme);
+gulp.task('bringme', gulp.series(function(done) {
+        _cleanUpTmp();
+        done();
+    }, generate_global, extract_entities, generate_factory, inject_entities, function(done) {
+        if (process.argv.includes('--no-clean')) {
+            console.log('No cleaning (tempory file is ' + TMP_COMPIL_PATH + ')');
+        } else {
+            console.log('Cleaning up tempory files...');
+            _cleanUpTmp();
+        }
+        done();   
+    })
+);
 gulp.task('prod', gulp.series(sass, min_css, ts, min_js));
 
 
